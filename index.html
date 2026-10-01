@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff5f7">
+    <title>Receipt Maker</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #302329;
+        --muted: #87777d;
+        --line: #f0e3e7;
+        --paper: #fff;
+        --canvas: #fff8f9;
+        --pink: #c36f89;
+        --pink-dark: #a95370;
+        --pink-soft: #fff0f4;
+        --rose: #d7829c;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background:
+          radial-gradient(ellipse at 8% 4%, #fce8ee 0, transparent 29rem),
+          var(--canvas);
+        color: var(--ink);
+      }
+
+      button, input { font: inherit; }
+
+      .page {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 42px 0 56px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 46px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        color: var(--pink-dark);
+        font-size: 15px;
+        font-weight: 750;
+        letter-spacing: -.03em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        place-items: center;
+        border-radius: 11px;
+        background: var(--pink);
+        color: white;
+      }
+
+      .brand-mark svg { width: 19px; height: 19px; }
+
+      .top-note {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      .intro { margin-bottom: 27px; }
+      .page-heading { margin-bottom: 27px; }
+      .page-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .page-link {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 9px;
+        background: var(--pink);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .page-link:hover { background: var(--pink-dark); }
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--rose);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(36px, 5vw, 50px);
+        font-weight: 500;
+        letter-spacing: -.055em;
+        line-height: 1.05;
+      }
+
+      .subtitle {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr);
+        align-items: start;
+        gap: 23px;
+      }
+
+      .menu-panel, .receipt {
+        border: 1px solid #f2e8eb;
+        border-radius: 17px;
+        background: var(--paper);
+        box-shadow: 0 12px 35px rgb(31 42 35 / 5%);
+      }
+
+      .menu-panel { padding: 25px; }
+      .panel-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -.02em;
+      }
+
+      .panel-hint {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .item-count {
+        flex: 0 0 auto;
+        padding: 6px 9px;
+        border-radius: 20px;
+        background: var(--pink-soft);
+        color: var(--pink-dark);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .menu-list { display: grid; gap: 10px; }
+
+      .menu-item {
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 13px;
+        min-height: 73px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        cursor: pointer;
+        transition: border-color .16s ease, background .16s ease, transform .16s ease;
+      }
+
+      .menu-item:hover { border-color: #e8bdca; transform: translateY(-1px); }
+      .menu-item:has(input:checked) {
+        border-color: #dfa6b7;
+        background: #fff9fa;
+      }
+
+      .menu-item input {
+        width: 17px;
+        height: 17px;
+        margin: 0;
+        accent-color: var(--pink);
+        cursor: pointer;
+      }
+
+      .item-name { display: block; font-size: 13px; font-weight: 700; }
+      .item-description {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .item-price { font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+      .receipt {
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+      }
+
+      .receipt-top {
+        padding: 25px 25px 20px;
+        background: var(--pink);
+        color: white;
+      }
+
+      .receipt-kicker {
+        margin: 0 0 8px;
+        color: #f7dce4;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+      }
+
+      .receipt-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -.04em;
+      }
+
+      .receipt-body { padding: 20px 25px 23px; }
+      .receipt-label {
+        margin: 0 0 13px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+
+      .receipt-items {
+        display: grid;
+        gap: 12px;
+        min-height: 57px;
+      }
+
+      .empty-state {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #929991;
+        font-size: 12px;
+      }
+
+      .empty-icon {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 9px;
+        background: #fff1f4;
+        color: var(--pink-dark);
+        font-size: 15px;
+      }
+
+      .receipt-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+      }
+
+      .receipt-line-name { color: #515c54; }
+      .receipt-line-price { font-weight: 650; white-space: nowrap; }
+      .receipt-line-qty { color: var(--muted); }
+
+      .receipt-divider {
+        height: 1px;
+        margin: 17px 0 14px;
+        border: 0;
+        background: var(--line);
+      }
+
+      .total-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 10px;
+        color: #647067;
+        font-size: 12px;
+      }
+
+      .total-line strong { color: var(--ink); font-weight: 650; }
+      .grand-total {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px dashed #ead5dc;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .grand-total strong { color: var(--pink-dark); font-size: 20px; }
+
+      .receipt-footer {
+        padding: 15px 25px 18px;
+        border-top: 1px dashed var(--line);
+        color: var(--muted);
+        font-size: 10px;
+        text-align: center;
+      }
+
+      .receipt-footer span { display: block; margin-bottom: 4px; color: var(--pink-dark); font-size: 13px; }
+
+      .print-button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 13px 16px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--pink);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .16s ease, transform .16s ease;
+      }
+
+      .print-button:hover:not(:disabled) { background: var(--pink-dark); transform: translateY(-1px); }
+      .print-button:disabled { background: #dfc4cc; cursor: not-allowed; }
+      .print-button svg { width: 15px; height: 15px; }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 760px) {
+        .page { width: min(540px, calc(100% - 28px)); padding-top: 25px; }
+        .topbar { margin-bottom: 36px; }
+        .top-note { font-size: 10px; }
+        .workspace { grid-template-columns: 1fr; }
+        .receipt { position: static; }
+      }
+
+      @media print {
+        body { min-width: 0; background: white; }
+        .page { width: 100%; padding: 0; }
+        .topbar, .intro, .menu-panel, .print-button { display: none !important; }
+        .workspace { display: block; }
+        .receipt {
+          position: static;
+          width: 360px;
+          margin: 0 auto;
+          border-color: #ddd;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-heading">
+        <h1>OBMC Entrep Fair</h1>
+        <a class="page-link" href="sku.html">SKU Generator</a>
+      </header>
+      <div class="workspace">
+        <section class="menu-panel" aria-labelledby="menu-heading">
+          <div class="panel-heading">
+            <div>
+              <h2 id="menu-heading">Menu</h2>
+            </div>
+            <span class="item-count" id="item-count">0 selected</span>
+          </div>
+
+          <div class="menu-list">
+            <label class="menu-item">
+              <input type="checkbox" class="menu-checkbox" value="18500" data-name="Americano">
+              <span>
+                <span class="item-name">Americano</span>
+              </span>
+              <span class="item-price">₱185.00</span>
+            </label>
+            <label class="menu-item">
+              <input type="checkbox" class="menu-checkbox" value="22000" data-name="Spanish Latte">
+              <span>
+                <span class="item-name">Spanish Latte</span>
+              </span>
+              <span class="item-price">₱220.00</span>
+            </label>
+            <label class="menu-item">
+              <input type="checkbox" class="menu-checkbox" value="16500" data-name="Cold Brew Malt">
+              <span>
+                <span class="item-name">Cold Brew Malt</span>
+              </span>
+              <span class="item-price">₱165.00</span>
+            </label>
+            <label class="menu-item">
+              <input type="checkbox" class="menu-checkbox" value="14000" data-name="Affogato">
+              <span>
+                <span class="item-name">Affogato</span>
+              </span>
+              <span class="item-price">₱140.00</span>
+            </label>
+            <label class="menu-item">
+              <input type="checkbox" class="menu-checkbox" value="9500" data-name="Caramel Macchiato">
+              <span>
+                <span class="item-name">Caramel Macchiato</span>
+              </span>
+              <span class="item-price">₱95.00</span>
+            </label>
+          </div>
+        </section>
+
+        <section aria-label="Order receipt">
+          <div class="receipt" aria-live="polite" aria-atomic="false">
+            <div class="receipt-top">
+              <p class="receipt-kicker">Your order</p>
+              <h2 class="receipt-title">Receipt</h2>
+            </div>
+            <div class="receipt-body">
+              <p class="receipt-label">Order summary</p>
+              <div class="receipt-items" id="receipt-items">
+                <div class="empty-state">
+                  <span class="empty-icon" aria-hidden="true">＋</span>
+                  <span>Your selected items will appear here.</span>
+                </div>
+              </div>
+              <hr class="receipt-divider">
+              <div class="total-line"><span>Subtotal</span><strong id="subtotal">₱0.00</strong></div>
+              <div class="total-line"><span>Tax <span class="sr-only">(12%)</span><span aria-hidden="true">· 12%</span></span><strong id="tax">₱0.00</strong></div>
+              <div class="total-line grand-total"><span>Total</span><strong id="total">₱0.00</strong></div>
+            </div>
+            <div class="receipt-footer">
+              Thank you!
+            </div>
+          </div>
+          <button class="print-button" id="print-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M7 8V4h10v4m-10 9H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/>
+              <path d="M7 14h10v6H7z"/>
+            </svg>
+            Print receipt
+          </button>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const checkboxes = Array.from(document.querySelectorAll(".menu-checkbox"));
+      const receiptItems = document.getElementById("receipt-items");
+      const itemCount = document.getElementById("item-count");
+      const printButton = document.getElementById("print-button");
+      const totals = {
+        subtotal: document.getElementById("subtotal"),
+        tax: document.getElementById("tax"),
+        total: document.getElementById("total")
+      };
+      const TAX_RATE = 0.12;
+      const peso = new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        minimumFractionDigits: 2
+      });
+
+      function updateReceipt() {
+        const selected = checkboxes.filter((checkbox) => checkbox.checked);
+        const subtotalCents = selected.reduce((sum, checkbox) => sum + Number(checkbox.value), 0);
+        const taxCents = Math.round(subtotalCents * TAX_RATE);
+
+        itemCount.textContent = `${selected.length} selected`;
+        printButton.disabled = selected.length === 0;
+
+        receiptItems.innerHTML = selected.length
+          ? selected.map((checkbox) => `
+              <div class="receipt-line">
+                <span class="receipt-line-name">${checkbox.dataset.name}</span>
+                <span class="receipt-line-price">${peso.format(Number(checkbox.value) / 100)}</span>
+              </div>`).join("")
+          : `
+              <div class="empty-state">
+                <span class="empty-icon" aria-hidden="true">＋</span>
+                <span>Your selected items will appear here.</span>
+              </div>`;
+
+        totals.subtotal.textContent = peso.format(subtotalCents / 100);
+        totals.tax.textContent = peso.format(taxCents / 100);
+        totals.total.textContent = peso.format((subtotalCents + taxCents) / 100);
+      }
+
+      checkboxes.forEach((checkbox) => checkbox.addEventListener("change", updateReceipt));
+      printButton.addEventListener("click", () => window.print());
+    </script>
+  </body>
+</html>
