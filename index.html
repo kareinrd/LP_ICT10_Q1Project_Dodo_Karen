@@ -388,49 +388,37 @@
     </main>
 
     <script>
-      const checkboxes = Array.from(document.querySelectorAll(".menu-checkbox"));
-      const receiptItems = document.getElementById("receipt-items");
-      const itemCount = document.getElementById("item-count");
-      const printButton = document.getElementById("print-button");
-      const totals = {
-        subtotal: document.getElementById("subtotal"),
-        tax: document.getElementById("tax"),
-        total: document.getElementById("total")
-      };
-      const TAX_RATE = 0.12;
-      const peso = new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-        minimumFractionDigits: 2
-      });
+      const boxes = [...document.querySelectorAll('.menu-checkbox')];
+      const items = document.getElementById('receipt-items');
+      const count = document.getElementById('item-count');
+      const btn = document.getElementById('print-button');
+      const money = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
+      const fmt = (cents) => money.format(cents / 100);
+      const empty = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">＋</span><span>Your selected items will appear here.</span></div>';
 
-      function updateReceipt() {
-        const selected = checkboxes.filter((checkbox) => checkbox.checked);
-        const subtotalCents = selected.reduce((sum, checkbox) => sum + Number(checkbox.value), 0);
-        const taxCents = Math.round(subtotalCents * TAX_RATE);
+      function render() {
+        const selected = boxes.filter((box) => box.checked);
+        const subtotal = selected.reduce((sum, box) => sum + Number(box.value), 0);
+        const tax = Math.round(subtotal * 0.12);
+        const total = subtotal + tax;
 
-        itemCount.textContent = `${selected.length} selected`;
-        printButton.disabled = selected.length === 0;
-
-        receiptItems.innerHTML = selected.length
-          ? selected.map((checkbox) => `
+        count.textContent = `${selected.length} selected`;
+        btn.disabled = !selected.length;
+        items.innerHTML = selected.length
+          ? selected.map((box) => `
               <div class="receipt-line">
-                <span class="receipt-line-name">${checkbox.dataset.name}</span>
-                <span class="receipt-line-price">${peso.format(Number(checkbox.value) / 100)}</span>
-              </div>`).join("")
-          : `
-              <div class="empty-state">
-                <span class="empty-icon" aria-hidden="true">＋</span>
-                <span>Your selected items will appear here.</span>
-              </div>`;
+                <span class="receipt-line-name">${box.dataset.name}</span>
+                <span class="receipt-line-price">${fmt(Number(box.value))}</span>
+              </div>`).join('')
+          : empty;
 
-        totals.subtotal.textContent = peso.format(subtotalCents / 100);
-        totals.tax.textContent = peso.format(taxCents / 100);
-        totals.total.textContent = peso.format((subtotalCents + taxCents) / 100);
+        document.getElementById('subtotal').textContent = fmt(subtotal);
+        document.getElementById('tax').textContent = fmt(tax);
+        document.getElementById('total').textContent = fmt(total);
       }
 
-      checkboxes.forEach((checkbox) => checkbox.addEventListener("change", updateReceipt));
-      printButton.addEventListener("click", () => window.print());
+      boxes.forEach((box) => box.addEventListener('change', render));
+      btn.addEventListener('click', () => window.print());
     </script>
   </body>
 </html>
