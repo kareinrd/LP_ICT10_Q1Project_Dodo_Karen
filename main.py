@@ -1,6 +1,5 @@
 from pyscript import display, document
 
-
 def SKU_generator(e):
     document.getElementById("sku_output").innerHTML = " "
     category = document.getElementById("category").value
@@ -11,14 +10,18 @@ def SKU_generator(e):
 
 
 def create_order(e):
-    products = (
-        document.getElementById(f"item{number}")
-        for number in range(1, 6)
-    )
-    subtotal = sum(
-        float(product.value)
-        for product in products
-        if product.checked
+    prod1 = document.getElementById("item1")
+    prod2 = document.getElementById("item2")
+    prod3 = document.getElementById("item3")
+    prod4 = document.getElementById("item4")
+    prod5 = document.getElementById("item5")
+
+    subtotal = (
+        float(prod1.value) * prod1.checked +
+        float(prod2.value) * prod2.checked +
+        float(prod3.value) * prod3.checked +
+        float(prod4.value) * prod4.checked +
+        float(prod5.value) * prod5.checked
     )
     tax = subtotal * 0.12
     receipt = f"""
