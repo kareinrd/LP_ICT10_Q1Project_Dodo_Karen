@@ -388,37 +388,39 @@
     </main>
 
     <script>
-      const boxes = [...document.querySelectorAll('.menu-checkbox')];
-      const items = document.getElementById('receipt-items');
-      const count = document.getElementById('item-count');
-      const btn = document.getElementById('print-button');
-      const money = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
-      const fmt = (cents) => money.format(cents / 100);
-      const empty = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">＋</span><span>Your selected items will appear here.</span></div>';
+      // const means constant which basically makes a variable that keeps information
+      const boxes = [...document.querySelectorAll('.menu-checkbox')]; //selects all the checked items on the menu
+      const items = document.getElementById('receipt-items'); //where selected thingys are shown
+      const count = document.getElementById('item-count'); //how many you selected
+      const btn = document.getElementById('print-button'); //the button to click print
+      const money = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }); //turns it into pesos
+      const fmt = (cents) => money.format(cents / 100); //gets the amount in cents, then divides it by 100 to get the final subtotal
+      const empty = '<div class="empty-state"><span class="empty-icon" aria-hidden="true">＋</span><span>Your selected items will appear here.</span></div>'; //what appears when you dont select anything from menu
 
-      function render() {
-        const selected = boxes.filter((box) => box.checked);
-        const subtotal = selected.reduce((sum, box) => sum + Number(box.value), 0);
-        const tax = Math.round(subtotal * 0.12);
-        const total = subtotal + tax;
+      function render() { //updates the code when u select stuff on the menu
+        const selected = boxes.filter((box) => box.checked); //filters the boxes that have been checked
+        const subtotal = selected.reduce((sum, box) => sum + Number(box.value), 0); //adds the subtotal (before tax)
+        const tax = Math.round(subtotal * 0.12); //adds with the tax included and rounds it off
+        const total = subtotal + tax; //how much it is in total including tax
 
-        count.textContent = `${selected.length} selected`;
-        btn.disabled = !selected.length;
-        items.innerHTML = selected.length
+        count.textContent = `${selected.length} selected`; //updates to show how many items you selected
+        btn.disabled = !selected.length; //disables print button if nothing is selected
+        items.innerHTML = selected.length //if something is selects, else if nothing is selected
           ? selected.map((box) => `
               <div class="receipt-line">
                 <span class="receipt-line-name">${box.dataset.name}</span>
                 <span class="receipt-line-price">${fmt(Number(box.value))}</span>
-              </div>`).join('')
-          : empty;
+              </div>`).join('') //combines erveything into one line and shows the name and price of the item
+          : empty; //if nothing is selected the text will show "Your selected items will appear here." if something is selected it will show the name and price of the item
 
-        document.getElementById('subtotal').textContent = fmt(subtotal);
-        document.getElementById('tax').textContent = fmt(tax);
-        document.getElementById('total').textContent = fmt(total);
+        document.getElementById('subtotal').textContent = fmt(subtotal); //gets the subtotal
+        document.getElementById('tax').textContent = fmt(tax); //calculates the tax
+        document.getElementById('total').textContent = fmt(total); //adds the subtotal and tax to get the final total
       }
 
-      boxes.forEach((box) => box.addEventListener('change', render));
-      btn.addEventListener('click', () => window.print());
+      boxes.forEach((box) => box.addEventListener('change', render)); //connects the menu items to the render function so that when you select something it will update the receipt
+      
+      btn.addEventListener('click', () => window.print()); //prints the receipt when you click the print button
     </script>
   </body>
 </html>
